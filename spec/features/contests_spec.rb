@@ -22,84 +22,84 @@ describe "ContestsPages" do
 
     describe "invalid information" do
       describe "missing information" do
-	it "should not create a contest" do
-	  expect { click_button submit }.not_to change(Contest, :count)
-	end
+        it "should not create a contest" do
+          expect { click_button submit }.not_to change(Contest, :count)
+        end
 
-	describe "after submission" do
-	  before { click_button submit }
+        describe "after submission" do
+          before { click_button submit }
 
-	  it { should have_alert(:danger) }
-	end
+          it { should have_alert(:danger) }
+        end
       end
 
       illegal_dates = [{month: 'February', day: '30'},
-		       {month: 'February', day: '31'},
-		       {year: '2014', month: 'February', day: '29'},
-		       {month: 'April', day: '31'},
-		       {month: 'June', day: '31'},
-		       {month: 'September', day: '31'},
-		       {month: 'November', day: '31'}]
+                       {month: 'February', day: '31'},
+                       {year: '2014', month: 'February', day: '29'},
+                       {month: 'April', day: '31'},
+                       {month: 'June', day: '31'},
+                       {month: 'September', day: '31'},
+                       {month: 'November', day: '31'}]
       illegal_dates.each do |date|
-	describe "illegal date (#{date.to_s})" do
-	  before do
-	    select_illegal_datetime('Start', date)
-	    select_datetime(now, 'Deadline')
-	    fill_in 'Description', with: description
-	    fill_in 'Name', with: name
-	    fill_in 'Contest Type', with: type
-	    select referee.name, from: 'Referee'
-	    click_button submit
-	  end
+        describe "illegal date (#{date.to_s})" do
+          before do
+            select_illegal_datetime('Start', date)
+            select_datetime(now, 'Deadline')
+            fill_in 'Description', with: description
+            fill_in 'Name', with: name
+            fill_in 'Contest Type', with: type
+            select referee.name, from: 'Referee'
+            click_button submit
+          end
 
-	  it { should have_alert(:danger) }
-	end
+          it { should have_alert(:danger) }
+        end
       end
     end
 
     describe "valid information" do
       before do
-	select_datetime(now, 'Deadline')
-	select_datetime(now, 'Start')
-	fill_in 'Description', with: description
-	fill_in 'Name', with: name
-	fill_in 'Contest Type', with: type
-	select referee.name, from: 'Referee'
+        select_datetime(now, 'Deadline')
+        select_datetime(now, 'Start')
+        fill_in 'Description', with: description
+        fill_in 'Name', with: name
+        fill_in 'Contest Type', with: type
+        select referee.name, from: 'Referee'
       end
 
       it "should create a contest" do
-	expect { click_button submit }.to change(Contest, :count).by(1)
+        expect { click_button submit }.to change(Contest, :count).by(1)
       end
 
       describe "redirects properly", type: :request do
-	before do
-	  login creator, avoid_capybara: true
-	  post contests_path, contest: { deadline: now.strftime("%F %T"),
-					 start: now.strftime("%F %T"),
-					 description: description,
-					 name: name,
-					 contest_type: type,
-					 referee_id: referee.id }
-	end
+        before do
+          login creator, avoid_capybara: true
+          post contests_path, contest: { deadline: now.strftime("%F %T"),
+                                         start: now.strftime("%F %T"),
+                                         description: description,
+                                         name: name,
+                                         contest_type: type,
+                                         referee_id: referee.id }
+        end
 
-	specify { expect(response).to redirect_to(contest_path(assigns(:contest))) }
+        specify { expect(response).to redirect_to(contest_path(assigns(:contest))) }
       end
 
       describe "after submission" do
-	let (:contest) { Contest.find_by(name: name) }
+        let (:contest) { Contest.find_by(name: name) }
 
-	before { click_button submit }
+        before { click_button submit }
 
-	specify { expect(contest.user).to eq(creator) }
+        specify { expect(contest.user).to eq(creator) }
 
-	it { should have_alert(:success, text: 'Contest created') }
-	it { should have_content(/less than a minute|1 minute/) }
-	it { should have_content(description) }
-	it { should have_content(name) }
-	it { should have_content(type) }
-	it { should have_content(contest.referee.name) }
-	it { should have_link('New Player',
-			      href: new_contest_player_path(contest)) }
+        it { should have_alert(:success, text: 'Contest created') }
+        it { should have_content(/less than a minute|1 minute/) }
+        it { should have_content(description) }
+        it { should have_content(name) }
+        it { should have_content(type) }
+        it { should have_content(contest.referee.name) }
+        it { should have_link('New Player',
+                              href: new_contest_player_path(contest)) }
       end
     end
   end
@@ -123,71 +123,71 @@ describe "ContestsPages" do
 
     describe "with invalid information" do
       before do
-	select_datetime(now, 'Deadline')
-	select_datetime(now, 'Start')
-	fill_in 'Name', with: ''
-	fill_in 'Description', with: description
-	fill_in 'Contest Type', with: type
-	select referee.name, from: 'Referee'
+        select_datetime(now, 'Deadline')
+        select_datetime(now, 'Start')
+        fill_in 'Name', with: ''
+        fill_in 'Description', with: description
+        fill_in 'Contest Type', with: type
+        select referee.name, from: 'Referee'
       end
 
       describe "does not change data" do
-	before { click_button submit }
+        before { click_button submit }
 
-	specify { expect(contest.reload.name).not_to eq('') }
-	specify { expect(contest.reload.name).to eq(orig_name) }
+        specify { expect(contest.reload.name).not_to eq('') }
+        specify { expect(contest.reload.name).to eq(orig_name) }
       end
 
       it "does not add a new contest to the system" do
-	expect { click_button submit }.not_to change(Contest, :count)
+        expect { click_button submit }.not_to change(Contest, :count)
       end
 
       it "produces an error message" do
-	click_button submit
-	should have_alert(:danger)
+        click_button submit
+        should have_alert(:danger)
       end
     end
 
     describe "with valid information" do
       before do
-	select_datetime(now, 'Deadline')
-	select_datetime(now, 'Start')
-	fill_in 'Name', with: name
-	fill_in 'Description', with: description
-	fill_in 'Contest Type', with: type
-	select referee.name, from: 'Referee'
+        select_datetime(now, 'Deadline')
+        select_datetime(now, 'Start')
+        fill_in 'Name', with: name
+        fill_in 'Description', with: description
+        fill_in 'Contest Type', with: type
+        select referee.name, from: 'Referee'
       end
 
       describe "changes the data" do
-	before { click_button submit }
+        before { click_button submit }
 
-	it { should have_alert(:success) }
-	specify { expect_same_minute(contest.reload.deadline, now) }
-	specify { expect_same_minute(contest.reload.start, now) }
-	specify { expect(contest.reload.name).to eq(name) }
-	specify { expect(contest.reload.description).to eq(description) }
-	specify { expect(contest.reload.contest_type).to eq(type) }
-	specify { expect(contest.reload.referee.name).to eq(referee.name) }
-	it { should have_link('New Player',
-			      href: new_contest_player_path(contest)) }
+        it { should have_alert(:success) }
+        specify { expect_same_minute(contest.reload.deadline, now) }
+        specify { expect_same_minute(contest.reload.start, now) }
+        specify { expect(contest.reload.name).to eq(name) }
+        specify { expect(contest.reload.description).to eq(description) }
+        specify { expect(contest.reload.contest_type).to eq(type) }
+        specify { expect(contest.reload.referee.name).to eq(referee.name) }
+        it { should have_link('New Player',
+                              href: new_contest_player_path(contest)) }
       end
 
       describe "redirects properly", type: :request do
-	before do
-	  login creator, avoid_capybara: true
-	  patch contest_path(contest), contest: { deadline: now.strftime("%F %T"),
-						  start: now.strftime("%F %T"),
-						  description: description,
-						  name: name,
-						  contest_type: type,
-						  referee_id: referee.id }
-	end
+        before do
+          login creator, avoid_capybara: true
+          patch contest_path(contest), contest: { deadline: now.strftime("%F %T"),
+                                                  start: now.strftime("%F %T"),
+                                                  description: description,
+                                                  name: name,
+                                                  contest_type: type,
+                                                  referee_id: referee.id }
+        end
 
-	specify { expect(response).to redirect_to(contest_path(contest)) }
+        specify { expect(response).to redirect_to(contest_path(contest)) }
       end
 
       it "does not add a new contest to the system" do
-	expect { click_button submit }.not_to change(Contest, :count)
+        expect { click_button submit }.not_to change(Contest, :count)
       end
     end
   end
@@ -232,7 +232,7 @@ describe "ContestsPages" do
     it { should have_link(contest.referee.name, referee_path(contest.referee)) }
     # add Players that use this contest
     it { should have_link('New Player',
-			  href: new_contest_player_path(contest)) }
+                          href: new_contest_player_path(contest)) }
   end
 
   describe "show all" do
@@ -244,8 +244,8 @@ describe "ContestsPages" do
 
     it "lists all the contests in the system" do
       Contest.all.each do |c|
-	should have_selector('li', text: c.name)
-	should have_link(c.name, contest_path(c))
+        should have_selector('li', text: c.name)
+        should have_link(c.name, contest_path(c))
       end
     end
   end
