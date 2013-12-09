@@ -9,6 +9,6 @@
 #  ProgrammingLanguage.create(name: lang)
 #end
 
-#%W(Challenge Tournament Friendly #{'King of the Hill'}).each do |type|
-#  MatchType.create(kind: type)
-#end
+%W(Challenge Tournament Friendly #{'King of the Hill'}).each do |type|
+  MatchType.create(kind: type)
+end
